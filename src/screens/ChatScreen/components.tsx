@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { MessageItemProps } from './types';
+import { InputAreaProps, MessageItemProps } from './types';
 import { styles } from './styles';
 
 export const MessageItem: React.FC<MessageItemProps> = ({ message }) => (
@@ -16,12 +16,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message }) => (
     </Text>
   </View>
 );
-
-interface InputAreaProps {
-  message: string;
-  setMessage: (message: string) => void;
-  sendMessage: () => void;
-}
 
 export const InputArea: React.FC<InputAreaProps> = ({
   message,
