@@ -20,6 +20,7 @@ const ChatScreen = () => {
     sendMessage,
     scrollViewRef,
     setMessage,
+    autoFocus,
   } = useChatScreen();
 
   return (
@@ -62,6 +63,7 @@ const ChatScreen = () => {
             message={message}
             setMessage={setMessage}
             sendMessage={sendMessage}
+            autoFocus={autoFocus}
           />
         </View>
       </KeyboardAvoidingView>

@@ -13,4 +13,5 @@ export type InputAreaProps = {
   message: string;
   setMessage: (message: string) => void;
   sendMessage: () => void;
+  autoFocus?: boolean;
 };

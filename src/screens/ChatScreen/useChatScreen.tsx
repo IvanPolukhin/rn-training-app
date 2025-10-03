@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Message } from './types';
 
 export const useChatScreen = () => {
@@ -13,7 +13,15 @@ export const useChatScreen = () => {
       timestamp: new Date(),
     },
   ]);
+  const [autoFocus, setAutoFocus] = useState(false);
   const scrollViewRef = useRef<any>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      setAutoFocus(true);
+      return () => setAutoFocus(false);
+    }, []),
+  );
 
   const sendMessage = useCallback(() => {
     if (message.trim()) {
@@ -26,7 +34,6 @@ export const useChatScreen = () => {
       setMessages(prev => [...prev, newMessage]);
       setMessage('');
 
-      // Автоответ
       setTimeout(() => {
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -57,5 +64,6 @@ export const useChatScreen = () => {
     scrollViewRef,
     renderMessage,
     setMessage,
+    autoFocus,
   };
 };
