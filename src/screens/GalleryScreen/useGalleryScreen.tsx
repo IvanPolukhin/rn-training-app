@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback, useMemo } from 'react';
+import { useInfiniteQuery, QueryFunctionContext } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { useGalleryStore } from '../../store/useGalleryStore';
 import { Photo } from '../../types/types';
@@ -7,7 +7,6 @@ import { photoService } from '../../api/photoService';
 
 export const useGalleryScreen = () => {
   const navigation = useNavigation();
-  const [page, setPage] = useState(1);
 
   const {
     theme,
@@ -24,18 +23,38 @@ export const useGalleryScreen = () => {
   } = useGalleryStore();
 
   const {
-    data: photos = [],
-    isLoading,
+    data,
     isError,
     error,
-    refetch,
     isFetching,
-  } = useQuery({
-    queryKey: ['photos', page],
-    queryFn: () => photoService.getPhotos(page, 20),
+    fetchNextPage,
+    refetch,
+    hasNextPage,
+    isLoading,
+  } = useInfiniteQuery<
+    Photo[],
+    Error,
+    { pages: Photo[]; pageParams: number[] },
+    string[],
+    number
+  >({
+    queryKey: ['photos'],
+
+    queryFn: async ({
+      pageParam = 1,
+    }: QueryFunctionContext<string[], number>) => {
+      return await photoService.getPhotos(pageParam, 20);
+    },
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === 20 ? allPages.length + 1 : undefined,
+    initialPageParam: 1,
     staleTime: 5 * 60 * 1000,
-    retry: 3,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
+
+  const photos: Photo[] = useMemo(() => data?.pages?.flat() ?? [], [data]);
 
   const filteredAndSortedPhotos = useMemo(() => {
     let filtered = photos;
@@ -74,8 +93,8 @@ export const useGalleryScreen = () => {
           bValue = b.height;
           break;
         default:
-          aValue = parseInt(a.id);
-          bValue = parseInt(b.id);
+          aValue = parseInt(a.id, 10);
+          bValue = parseInt(b.id, 10);
       }
 
       if (typeof aValue === 'string' && typeof bValue === 'string') {
@@ -91,20 +110,17 @@ export const useGalleryScreen = () => {
   }, [photos, filter, sortBy, sortOrder]);
 
   const handleRefresh = useCallback(async () => {
-    setPage(1);
     await refetch();
   }, [refetch]);
 
   const handleLoadMore = useCallback(() => {
-    if (!isLoading) {
-      setPage(prev => prev + 1);
+    if (hasNextPage && !isFetching) {
+      fetchNextPage();
     }
-  }, [isLoading]);
+  }, [hasNextPage, isFetching, fetchNextPage]);
 
   const handleToggleFavorite = useCallback(
-    (photoId: string) => {
-      toggleFavorite(photoId);
-    },
+    (photoId: string) => toggleFavorite(photoId),
     [toggleFavorite],
   );
 
@@ -112,12 +128,7 @@ export const useGalleryScreen = () => {
     ({ item }: { item: Photo }) => {
       const aspectRatio = item.width / item.height;
       const isFav = isFavorite(item.id);
-
-      return {
-        aspectRatio,
-        isFav,
-        item,
-      };
+      return { aspectRatio, isFav, item };
     },
     [isFavorite],
   );
@@ -151,44 +162,24 @@ export const useGalleryScreen = () => {
     ],
   );
 
-  const renderFooter = useCallback(() => {
-    return { isLoading };
-  }, [isLoading]);
+  const renderFooter = useCallback(() => ({ isLoading }), [isLoading]);
 
   return {
-    // Navigation
     navigation,
-
-    // State
     theme,
-    page,
     photos,
     filteredAndSortedPhotos,
     favorites,
-
-    // Query state
     isLoading,
     isError,
     error,
     isFetching,
-
-    // Actions
     handleRefresh,
     handleLoadMore,
     handleToggleFavorite,
     refetch,
-
-    // Render helpers
     renderPhoto,
     renderHeader,
     renderFooter,
-
-    // Store actions
-    setTheme,
-    setFilter,
-    setSortBy,
-    setSortOrder,
-    toggleFavorite,
-    isFavorite,
   };
 };

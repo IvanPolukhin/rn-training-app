@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useGalleryScreen } from './useGalleryScreen';
 import { styles } from './styles';
 import {
@@ -10,6 +10,7 @@ import {
   GalleryFooter,
   ErrorScreen,
 } from './components';
+import { Photo } from '../../types/types';
 
 const GalleryScreen = () => {
   const {
@@ -38,6 +39,15 @@ const GalleryScreen = () => {
 
   const headerData = renderHeader();
 
+  const headerComponent = useMemo(
+    () => <GalleryHeader {...headerData} />,
+    [headerData],
+  );
+  const footerComponent = useMemo(
+    () => <GalleryFooter {...renderFooter()} />,
+    [renderFooter],
+  );
+
   return (
     <SafeAreaView
       style={[styles.container, theme === 'dark' && styles.containerDark]}
@@ -54,9 +64,9 @@ const GalleryScreen = () => {
         </Text>
       </View>
 
-      <FlashList
+      <FlashList<Photo>
         data={filteredAndSortedPhotos}
-        renderItem={({ item }) => {
+        renderItem={({ item }: ListRenderItemInfo<Photo>) => {
           const photoData = renderPhoto({ item });
           return (
             <PhotoItem
@@ -67,10 +77,10 @@ const GalleryScreen = () => {
             />
           );
         }}
-        keyExtractor={item => item.id}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
         numColumns={2}
-        ListHeaderComponent={() => <GalleryHeader {...headerData} />}
-        ListFooterComponent={() => <GalleryFooter {...renderFooter()} />}
+        ListHeaderComponent={headerComponent}
+        ListFooterComponent={footerComponent}
         refreshControl={
           <RefreshControl
             refreshing={isFetching}
