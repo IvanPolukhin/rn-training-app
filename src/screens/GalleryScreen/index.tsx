@@ -2,14 +2,14 @@ import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
-import { useGalleryScreen } from './useGalleryScreen';
+import { useGallery } from '../../hooks';
 import { styles } from './styles';
 import {
   PhotoItem,
   GalleryHeader,
   GalleryFooter,
   ErrorScreen,
-} from './components';
+} from '../../components';
 import { Photo } from '../../types/types';
 
 const GalleryScreen = () => {
@@ -27,7 +27,7 @@ const GalleryScreen = () => {
     renderPhoto,
     renderHeader,
     renderFooter,
-  } = useGalleryScreen();
+  } = useGallery();
 
   if (isError) {
     return (
@@ -93,6 +93,7 @@ const GalleryScreen = () => {
         onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        removeClippedSubviews={true}
       />
     </SafeAreaView>
   );

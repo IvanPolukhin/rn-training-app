@@ -1,16 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
-import { useAuthStore } from '../../features/auth/useAuth';
+import { useAuthStore } from '../features/auth/useAuth';
+import { keychainService } from '../services/keychainService';
 
-export const useLoginScreen = () => {
+export const useLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const { login, checkStoredAuth } = useAuthStore();
+  const [biometrySupported, setBiometrySupported] = useState(false);
+  const [biometryType, setBiometryType] = useState<string | null>(null);
+  const { login } = useAuthStore();
 
   useEffect(() => {
-    checkStoredAuth();
-  }, [checkStoredAuth]);
+    checkBiometrySupport();
+  }, []);
+
+  const checkBiometrySupport = async () => {
+    try {
+      const supported = await keychainService.isBiometrySupported();
+      const type = await keychainService.getBiometryType();
+      setBiometrySupported(supported);
+      setBiometryType(type);
+    } catch (error) {
+      console.error('Ошибка при проверке биометрии:', error);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -37,6 +51,8 @@ export const useLoginScreen = () => {
     setPassword,
     rememberMe,
     setRememberMe,
+    biometrySupported,
+    biometryType,
     handleLogin,
   };
 };

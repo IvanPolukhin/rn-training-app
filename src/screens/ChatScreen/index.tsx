@@ -1,16 +1,10 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { styles } from './styles';
-import { useChatScreen } from './useChatScreen';
-import { MessageItem, InputArea } from './components';
+import { useChat } from '../../hooks';
+import { MessageItem, InputArea } from '../../components';
 
 const ChatScreen = () => {
   const {
@@ -21,7 +15,7 @@ const ChatScreen = () => {
     scrollViewRef,
     setMessage,
     autoFocus,
-  } = useChatScreen();
+  } = useChat();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -44,8 +38,8 @@ const ChatScreen = () => {
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        behavior="padding"
+        keyboardVerticalOffset={0}
       >
         <View style={styles.chatContainer}>
           <ScrollView

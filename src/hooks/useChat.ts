@@ -1,8 +1,14 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Message } from './types';
 
-export const useChatScreen = () => {
+interface Message {
+  id: string;
+  text: string;
+  isUser: boolean;
+  timestamp: Date;
+}
+
+export const useChat = () => {
   const navigation = useNavigation();
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([

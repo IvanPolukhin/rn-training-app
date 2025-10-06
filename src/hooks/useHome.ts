@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
-import { useAuthStore } from '../../features/auth/useAuth';
+import { useAuthStore } from '../features/auth/useAuth';
 
-export const useHomeScreen = () => {
+export const useHome = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuthStore();
 

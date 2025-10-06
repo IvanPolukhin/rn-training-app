@@ -1,24 +1,43 @@
+import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
-import { ListItem } from './types';
-import { colors } from './constants';
-import React from 'react';
 import { FlatList } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { ListFooterComponent, ListItemComponent } from './components';
+import { ListItem, ListFooter } from '../components';
 
-export const useListTestScreen = () => {
+interface ListItemData {
+  id: string;
+  title: string;
+  subtitle: string;
+  value: number;
+  color: string;
+}
+
+const colors = [
+  '#FF6B6B',
+  '#4ECDC4',
+  '#45B7D1',
+  '#96CEB4',
+  '#FFEAA7',
+  '#DDA0DD',
+  '#98D8C8',
+  '#F7DC6F',
+  '#BB8FCE',
+  '#85C1E9',
+];
+
+export const useListTest = () => {
   const navigation = useNavigation();
   const [listType, setListType] = useState<'flatlist' | 'flashlist'>(
     'flatlist',
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [items, setItems] = useState<ListItem[]>([]);
+  const [items, setItems] = useState<ListItemData[]>([]);
   const [page, setPage] = useState(1);
 
   const generateItems = useCallback((pageNum: number, count: number = 20) => {
-    const newItems: ListItem[] = [];
+    const newItems: ListItemData[] = [];
 
     for (let i = 0; i < count; i++) {
       const index = (pageNum - 1) * count + i;
@@ -61,20 +80,22 @@ export const useListTestScreen = () => {
   }, [isLoadingMore, page, generateItems]);
 
   const renderItem = useCallback(
-    ({ item }: { item: ListItem }) => <ListItemComponent item={item} />,
+    ({ item }: { item: ListItemData }) =>
+      React.createElement(ListItem, { item }),
     [],
   );
 
   const renderFooter = useCallback(
-    () => <ListFooterComponent isLoadingMore={isLoadingMore} />,
+    () => React.createElement(ListFooter, { isLoadingMore }),
     [isLoadingMore],
   );
 
-  const keyExtractor = useCallback((item: ListItem) => item.id, []);
+  const keyExtractor = useCallback((item: ListItemData) => item.id, []);
 
   const ListComponent = useMemo(() => {
     return listType === 'flatlist' ? FlatList : FlashList;
   }, [listType]);
+
   return {
     navigation,
     listType,

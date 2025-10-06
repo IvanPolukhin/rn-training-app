@@ -1,7 +1,6 @@
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthState } from './types';
-import { AUTH_STORAGE_KEY } from './constants';
+import { AuthState } from '../../types/types';
+import { keychainService } from '../../services/keychainService';
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
@@ -12,7 +11,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const userData = { email, rememberMe };
 
       if (rememberMe) {
-        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
+        try {
+          await keychainService.saveCredentials({
+            email,
+            password,
+            rememberMe,
+          });
+        } catch (error) {
+          console.error('Ошибка при сохранении в Keychain:', error);
+        }
       }
 
       set({ isAuthenticated: true, user: userData });
@@ -20,16 +27,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
-    await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+    try {
+      await keychainService.removeCredentials();
+    } catch (error) {
+      console.error('Ошибка при удалении из Keychain:', error);
+    }
     set({ isAuthenticated: false, user: null });
   },
 
   checkStoredAuth: async () => {
     try {
-      const storedData = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
-      if (storedData) {
-        const userData = JSON.parse(storedData);
-        set({ isAuthenticated: true, user: userData });
+      const credentials = await keychainService.getCredentials();
+      if (credentials && credentials.rememberMe) {
+        set({
+          isAuthenticated: true,
+          user: {
+            email: credentials.email,
+            rememberMe: credentials.rememberMe,
+          },
+        });
       }
     } catch (error) {
       console.error(

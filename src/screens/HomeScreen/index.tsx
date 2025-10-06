@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './styles';
 import { menuItems } from './constants';
-import { useHomeScreen } from './useHomeScreen';
+import { useHome } from '../../hooks';
 
 const HomeScreen = () => {
-  const { navigation, user, handleLogout } = useHomeScreen();
+  const { navigation, user, handleLogout } = useHome();
 
   return (
     <SafeAreaView style={styles.container}>

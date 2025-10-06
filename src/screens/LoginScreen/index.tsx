@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { styles } from './styles';
-import { useLoginScreen } from './useLoginScreen';
-import { LoginForm, InfoSection } from './components';
+import { useLogin } from '../../hooks';
+import { LoginForm, InfoSection } from '../../components';
 
 const LoginScreen = () => {
   const {
@@ -13,27 +14,44 @@ const LoginScreen = () => {
     setPassword,
     rememberMe,
     setRememberMe,
+    biometrySupported,
+    biometryType,
     handleLogin,
-  } = useLoginScreen();
+  } = useLogin();
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Добро пожаловать!</Text>
-        <Text style={styles.subtitle}>Войдите в свой аккаунт</Text>
+      <KeyboardAvoidingView
+        behavior="padding"
+        style={styles.keyboardAvoidingView}
+        keyboardVerticalOffset={0}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <Text style={styles.title}>Добро пожаловать!</Text>
+            <Text style={styles.subtitle}>Войдите в свой аккаунт</Text>
 
-        <LoginForm
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          rememberMe={rememberMe}
-          setRememberMe={setRememberMe}
-          onLogin={handleLogin}
-        />
+            <LoginForm
+              email={email}
+              setEmail={setEmail}
+              password={password}
+              setPassword={setPassword}
+              rememberMe={rememberMe}
+              setRememberMe={setRememberMe}
+              onLogin={handleLogin}
+            />
 
-        <InfoSection />
-      </View>
+            <InfoSection
+              biometrySupported={biometrySupported}
+              biometryType={biometryType}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

@@ -5,10 +5,17 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
+    paddingVertical: 20,
   },
   title: {
     fontSize: 32,
@@ -76,5 +83,12 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#1976d2',
     fontSize: 14,
+  },
+  biometryText: {
+    textAlign: 'center',
+    color: '#4caf50',
+    fontSize: 12,
+    marginTop: 8,
+    fontWeight: '500',
   },
 });
