@@ -22,13 +22,10 @@ export const useGallery = () => {
     isFavorite,
   } = useGalleryStore();
 
-  const queryKey = useMemo(
-    () => ['photos', filter, sortBy, sortOrder],
-    [filter, sortBy, sortOrder],
-  );
+  const queryKey = useMemo(() => ['photos'], []);
 
   const {
-    data,
+    data: rawPhotosData,
     isError,
     error,
     isFetching,
@@ -48,58 +45,7 @@ export const useGallery = () => {
     queryFn: async ({
       pageParam = 1,
     }: QueryFunctionContext<string[], number>) => {
-      const photos = await photoService.getPhotos(pageParam, 20);
-
-      let filteredPhotos = photos;
-
-      if (filter !== 'all') {
-        filteredPhotos = photos.filter(photo => {
-          const aspectRatio = photo.width / photo.height;
-          switch (filter) {
-            case 'landscape':
-              return aspectRatio > 1.2;
-            case 'portrait':
-              return aspectRatio < 0.8;
-            case 'square':
-              return aspectRatio >= 0.8 && aspectRatio <= 1.2;
-            default:
-              return true;
-          }
-        });
-      }
-
-      return filteredPhotos.sort((a, b) => {
-        let aValue: string | number;
-        let bValue: string | number;
-
-        switch (sortBy) {
-          case 'author':
-            aValue = a.author.toLowerCase();
-            bValue = b.author.toLowerCase();
-            break;
-          case 'width':
-            aValue = a.width;
-            bValue = b.width;
-            break;
-          case 'height':
-            aValue = a.height;
-            bValue = b.height;
-            break;
-          default:
-            aValue = parseInt(a.id, 10);
-            bValue = parseInt(b.id, 10);
-        }
-
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortOrder === 'asc'
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-        } else {
-          return sortOrder === 'asc'
-            ? (aValue as number) - (bValue as number)
-            : (bValue as number) - (aValue as number);
-        }
-      });
+      return await photoService.getPhotos(pageParam, 20);
     },
     getNextPageParam: (lastPage, allPages) =>
       lastPage.length === 20 ? allPages.length + 1 : undefined,
@@ -111,16 +57,72 @@ export const useGallery = () => {
     enabled: true,
   });
 
-  const currentPagePhotos: Photo[] = useMemo(() => {
-    if (!data?.pages) return [];
+  const processedPhotos = useMemo(() => {
+    if (!rawPhotosData?.pages) return [];
 
-    const lastPage = data.pages[data.pages.length - 1];
+    const allPhotos = rawPhotosData.pages.flat();
+
+    let filteredPhotos = allPhotos;
+    if (filter !== 'all') {
+      filteredPhotos = allPhotos.filter(photo => {
+        const aspectRatio = photo.width / photo.height;
+        switch (filter) {
+          case 'landscape':
+            return aspectRatio > 1.2;
+          case 'portrait':
+            return aspectRatio < 0.8;
+          case 'square':
+            return aspectRatio >= 0.8 && aspectRatio <= 1.2;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filteredPhotos.sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortBy) {
+        case 'author':
+          aValue = a.author.toLowerCase();
+          bValue = b.author.toLowerCase();
+          break;
+        case 'width':
+          aValue = a.width;
+          bValue = b.width;
+          break;
+        case 'height':
+          aValue = a.height;
+          bValue = b.height;
+          break;
+        default:
+          aValue = parseInt(a.id, 10);
+          bValue = parseInt(b.id, 10);
+      }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortOrder === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        return sortOrder === 'asc'
+          ? (aValue as number) - (bValue as number)
+          : (bValue as number) - (aValue as number);
+      }
+    });
+  }, [rawPhotosData, filter, sortBy, sortOrder]);
+
+  const currentPagePhotos: Photo[] = useMemo(() => {
+    if (!rawPhotosData?.pages) return [];
+
+    const lastPage = rawPhotosData.pages[rawPhotosData.pages.length - 1];
     return Array.isArray(lastPage) ? lastPage : [];
-  }, [data]);
+  }, [rawPhotosData]);
 
   const allLoadedPhotos: Photo[] = useMemo(
-    () => data?.pages?.flat() ?? [],
-    [data],
+    () => rawPhotosData?.pages?.flat() ?? [],
+    [rawPhotosData],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -153,7 +155,7 @@ export const useGallery = () => {
       sortBy,
       sortOrder,
       theme,
-      filteredAndSortedPhotosLength: allLoadedPhotos.length,
+      filteredAndSortedPhotosLength: processedPhotos.length,
       photosLength: allLoadedPhotos.length,
       favoritesLength: favorites.length,
       setFilter,
@@ -166,6 +168,7 @@ export const useGallery = () => {
       sortBy,
       sortOrder,
       theme,
+      processedPhotos.length,
       allLoadedPhotos.length,
       favorites.length,
       setFilter,
@@ -180,8 +183,8 @@ export const useGallery = () => {
   return {
     navigation,
     theme,
-    photos: currentPagePhotos,
-    filteredAndSortedPhotos: currentPagePhotos,
+    photos: processedPhotos,
+    filteredAndSortedPhotos: processedPhotos,
     favorites,
     isLoading,
     isError,
